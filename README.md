@@ -8,3 +8,4 @@
 * oracle_connect：连接oracle数据库
 * sqlserver_connect：连接sqlserver数据库
 * rabbitmq：连接rabbitmq队列
+* curl：http请求下载流文件（视频数据）
