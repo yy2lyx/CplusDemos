@@ -1,0 +1,1 @@
+04/14/21 14:05:24,583.368 [7848] INFO  test - Hello world [D:\yeyan\vs_project\log4cplus_demo\main.cpp:56]
