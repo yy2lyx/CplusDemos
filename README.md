@@ -4,6 +4,7 @@
 
 * config：配置文件
 * log4cplus：日志系统
+* messageQueue：单对多消费的消息队列（多线程/多进程）
 * mkdir：创建文件、文件夹
 * oracle_connect：连接oracle数据库
 * sqlserver_connect：连接sqlserver数据库
