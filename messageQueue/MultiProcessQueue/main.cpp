@@ -9,31 +9,20 @@
 #include <sstream>
 #include <thread>
 
-
 using namespace std;
-
 
 ThreadQueue<string> messageQueue;
 ThreadQueue<int> idQueue;
 mutex print_mtx;
-int workers = 3;
 int buffer = 0;
-ofstream ofs_1, ofs_2, ofs_3;
+vector<ofstream*> streams;
 
 
-int switch_case(vector<string> output, int i) {
+
+int switch_case(vector<string> output, int i,int workers) {
 	int d = i % workers;
-	switch (d) {
-	case 0:
-		ofs_1 << output[i] << endl;
-		return 0;
-	case 1:
-		ofs_2 << output[i] << endl;
-		return 1;
-	case 2:
-		ofs_3 << output[i] << endl;
-		return 2;
-	}
+	*streams[d] << output[i] << endl;
+	return d;
 }
 
 void getVideoFromTxt(string video_path, int wait_seconds, vector<string>* output) {
@@ -129,7 +118,7 @@ void gen_multiProcess(int id, string input_txt,string output_txt) {
 }
 
 
-void consumer(string consumer_id, ofstream* ofs, vector<string>* output)
+void consumer(string consumer_id, ofstream* ofs, vector<string>* output,int workers)
 {
 	while (true)
 	{
@@ -143,14 +132,11 @@ void consumer(string consumer_id, ofstream* ofs, vector<string>* output)
 			int id_q;
 			idQueue.pop(id_q);
 			{
-				int txt_i = switch_case(*output, id_q);
+				int txt_i = switch_case(*output, id_q,workers);
 				cout << "Big consumer-" << consumer_id << " receive: " << message << ",in txt_id:" << txt_i << ",queu-pop:" << id_q << endl;
 			}
-			
 			*ofs << message << endl;
-
 		}
-		Sleep(1000);
 	}
 }
 
@@ -159,6 +145,15 @@ void consumer(string consumer_id, ofstream* ofs, vector<string>* output)
 
 
 int main() {
+	int workers = 3;
+	for (int i = 0; i < workers; i++) {
+		ofstream* of = new std::ofstream("input_" + to_string(i + 1) + ".txt", ios::out | ios::app);
+		streams.push_back(of);
+	}
+	
+	// 将队列中的数据划分为3份（均分），且从队列中出
+
+
 	cout << "Main process start ... " << endl;
 	vector<string> output;
 	
@@ -210,10 +205,6 @@ int main() {
 		}
 	}
 
-	// 将队列中的数据划分为3份（均分），且从队列中出
-	ofs_1.open("input_1.txt", ios::out | ios::app);
-	ofs_2.open("input_2.txt", ios::out | ios::app);
-	ofs_3.open("input_3.txt", ios::out | ios::app);
 
 	// timer扫描
 	int wait_sec = 1;
@@ -230,7 +221,7 @@ int main() {
 	}
 
 	// 大的ofs开始消费
-	consumer("1", &ofs, &output);
+	consumer("1", &ofs, &output,workers);
 
 	getchar();
 	
